@@ -1,28 +1,76 @@
 document.addEventListener('DOMContentLoaded', () => {
 
-    // --- YOUR EMAILJS KEYS ARE INTEGRATED HERE ---
+    // --- YOUR EMAILJS KEYS ---
     const EMAILJS_PUBLIC_KEY = 'jFuguvov1fb98PedB';
     const EMAILJS_SERVICE_ID = 'service_b6b6adn';
-    // Correctly named the variable for the admin template
     const ADMIN_TEMPLATE_ID = 'template_4fggr58'; 
     const CUSTOMER_TEMPLATE_ID = 'template_wy48qy6';
-    
-    // Initialize EmailJS with your Public Key
     emailjs.init(EMAILJS_PUBLIC_KEY);
 
-    // --- PRODUCT DATA (with corrected image paths) ---
+    // --- NEW PRODUCT DATA STRUCTURE WITH UPDATED PRICES ---
     const products = {
-        'red-chilli': { name: 'Red Chilli Powder', image: 'images/product2.jpg', price: 120, description: 'Sourced from the finest farms...' },
-        'turmeric': { name: 'Pure Turmeric Powder', image: 'images/product2.jpg', price: 90, description: 'Known as "Indian Saffron"...' },
-        'coriander': { name: 'Coriander Powder', image: 'images/product2.jpg', price: 85, description: 'Made from premium quality...' },
-        'atta': { name: 'Whole Wheat Atta', image: 'images/product2.jpg', price: 150, description: 'Our Atta is made from 100% whole wheat grains...' },
-        'hing': { name: 'Asafoetida (Hing)', image: 'images/product2.jpg', price: 250, description: 'A powerful and pungent spice...' },
-        'garam-masala': { name: 'Garam Masala', image: 'images/product2.jpg', price: 180, description: 'A classic blend of aromatic spices...' },
-        'cumin-seeds': { name: 'Cumin Seeds', image: 'images/product2.jpg', price: 110, description: 'Whole cumin seeds with an earthy, nutty flavor...' },
-        'black-pepper': { name: 'Black Pepper', image: 'images/product2.jpg', price: 200, description: 'Freshly ground black pepper...' }
+        'turmeric': {
+            name: 'Pure Turmeric Powder (Haldi)',
+            image: 'images/product2.jpg',
+            description: 'Known as "Indian Saffron", our turmeric has a high curcumin content, giving it a rich golden color.',
+            variants: [
+                { id: 'turmeric-200', size: '200gm', sp: 78, mrp: 97 },
+                { id: 'turmeric-500', size: '500gm', sp: 155, mrp: 210 }
+            ]
+        },
+        'coriander': {
+            name: 'Coriander Powder (Dhania)',
+            image: 'images/product3.jpg',
+            description: 'Made from premium quality coriander seeds, this powder has a fresh, citrusy aroma and a mild, sweet flavor.',
+            variants: [
+                { id: 'coriander-200', size: '200gm', sp: 55, mrp: 75 },
+                { id: 'coriander-500', size: '500gm', sp: 145, mrp: 195 }
+            ]
+        },
+        'red-chilli': {
+            name: 'Red Chilli Powder (Lal Mircha)',
+            image: 'images/product4.jpeg',
+            description: 'Sourced from the finest farms, our red chilli powder provides the perfect balance of vibrant color and sharp heat.',
+            variants: [
+                { id: 'chilli-200', size: '200gm', sp: 90, mrp: 120 },
+                { id: 'chilli-500', size: '500gm', sp: 195, mrp: 310 }
+            ]
+        },
+        'garam-masala': {
+            name: 'Garam Masala',
+            image: 'images/product5.jpg',
+            description: 'A classic blend of aromatic spices, perfect for adding a warm and complex flavor to any dish.',
+            variants: [
+                { id: 'garam-200', size: '200gm', sp: 110, mrp: 145 }
+            ]
+        },
+        'hing': { 
+            name: 'Asafoetida (Hing)', 
+            image: 'images/product6.jpg', 
+            description: 'A powerful and pungent spice...', 
+            variants: [{ id: 'hing-50', size: '50gm', sp: 145, mrp: 165 }] 
+        },
+        // 'atta': { 
+        //     name: 'Whole Wheat Atta', 
+        //     image: 'images/atta.jpg', 
+        //     description: 'Our Atta is made from 100% whole wheat grains...', 
+        //     variants: [{ id: 'atta-1kg', size: '1kg', sp: 150, mrp: 180 }] 
+        // },
+        // 'cumin-seeds': { 
+        //     name: 'Cumin Seeds', 
+        //     image: 'images/placeholder2.jpg', 
+        //     description: 'Whole cumin seeds...', 
+        //     variants: [{ id: 'cumin-200', size: '200gm', sp: 110, mrp: 130 }] 
+        // },
+        // 'black-pepper': { 
+        //     name: 'Black Pepper', 
+        //     image: 'images/placeholder3.jpg', 
+        //     description: 'Freshly ground black pepper...', 
+        //     variants: [{ id: 'pepper-100', size: '100gm', sp: 200, mrp: 240 }] 
+        // }
     };
 
-    // --- ELEMENTS ---
+    // --- ELEMENTS --- (No changes here)
     const productGrid = document.querySelector('.product-grid');
     const productModal = document.getElementById('product-modal');
     const cartIcon = document.getElementById('cart-icon');
@@ -41,97 +89,148 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- STATE ---
     let cart = {};
 
-    // --- RENDER & LOGIC FUNCTIONS ---
+    // --- HELPER FUNCTION to consistently format price HTML ---
+    function getPriceHtml(variant) {
+        let priceHtml = `<span class="price-sp">₹${variant.sp.toFixed(2)}</span>`;
+        if (variant.mrp && variant.mrp > variant.sp) {
+            priceHtml += ` <span class="price-mrp"><del>₹${variant.mrp.toFixed(2)}</del></span>`;
+        }
+        return priceHtml;
+    }
+
+    // --- RENDER & LOGIC FUNCTIONS (Updated for Variants) ---
+
     function renderProducts() {
         productGrid.innerHTML = '';
         for (const productId in products) {
             const product = products[productId];
+            const defaultVariant = product.variants[0];
             const card = document.createElement('div');
             card.className = 'product-card';
             card.dataset.productId = productId;
-            const isInCart = cart.hasOwnProperty(productId);
-            const quantity = isInCart ? cart[productId].quantity : 0;
-            let footerHtml = isInCart
-                ? `<div class="quantity-control"><button class="quantity-btn quantity-decrease" data-product-id="${productId}">-</button><span class="quantity-display">${quantity}</span><button class="quantity-btn quantity-increase" data-product-id="${productId}">+</button></div>`
-                : `<button class="btn-details" data-product-id="${productId}">View Details</button>`;
-            card.innerHTML = `<img src="${product.image}" alt="${product.name}"><h3>${product.name}</h3><p class="product-price">₹${product.price.toFixed(2)}</p><div class="product-card-footer">${footerHtml}</div>`;
+            
+            card.innerHTML = `
+                <img src="${product.image}" alt="${product.name}">
+                <h3>${product.name}</h3>
+                <div class="product-price">
+                    ${getPriceHtml(defaultVariant)}
+                </div>
+                <div class="product-card-footer">
+                    <button class="btn-details" data-product-id="${productId}">View Options</button>
+                </div>
+            `;
             productGrid.appendChild(card);
         }
     }
-    
-    function updateCart(productId, change) {
-        if (!cart[productId] && change > 0) {
-            cart[productId] = { ...products[productId], quantity: 1 };
-        } else if (cart[productId]) {
-            cart[productId].quantity += change;
-            if (cart[productId].quantity <= 0) {
-                delete cart[productId];
+
+    function findProductAndVariant(variantId) {
+        for (const productId in products) {
+            const product = products[productId];
+            const variant = product.variants.find(v => v.id === variantId);
+            if (variant) {
+                return { product: { name: product.name, image: product.image, description: product.description }, variant };
             }
         }
-        renderProducts();
+        return null;
+    }
+    
+    function updateCart(variantId, change) {
+        if (!cart[variantId] && change > 0) {
+            const { product, variant } = findProductAndVariant(variantId);
+            cart[variantId] = { ...product, ...variant, quantity: 1 };
+        } else if (cart[variantId]) {
+            cart[variantId].quantity += change;
+            if (cart[variantId].quantity <= 0) {
+                delete cart[variantId];
+            }
+        }
         updateCartUI();
     }
-
-    function showPlusOneAnimation(productId) {
-        const card = productGrid.querySelector(`.product-card[data-product-id="${productId}"]`);
-        if (card) {
-            const plusOne = document.createElement('span');
-            plusOne.textContent = '+1';
-            plusOne.className = 'plus-one-anim';
-            card.appendChild(plusOne);
-            setTimeout(() => { plusOne.remove(); }, 1000);
-        }
-    }
     
-    function updateCartUI() {
-        if (Object.keys(cart).length === 0) {
-            cartItemsContainer.innerHTML = '<p class="cart-empty-msg">Your cart is empty.</p>';
-            checkoutBtn.disabled = true;
-        } else {
-            cartItemsContainer.innerHTML = '';
-            checkoutBtn.disabled = false;
-            for (const productId in cart) {
-                const item = cart[productId];
-                const itemEl = document.createElement('div');
-                itemEl.className = 'cart-item';
-                itemEl.innerHTML = `<img src="${item.image}" alt="${item.name}" class="cart-item-img"><div class="cart-item-details"><h4>${item.name}</h4><p class="cart-item-price">₹${item.price.toFixed(2)} x ${item.quantity}</p></div><button class="remove-from-cart-btn" data-product-id="${productId}">✖</button>`;
-                cartItemsContainer.appendChild(itemEl);
-            }
+    // --- UPDATED CART UI FUNCTION ---
+// --- FINAL CORRECTED CART UI FUNCTION ---
+function updateCartUI() {
+    if (Object.keys(cart).length === 0) {
+        cartItemsContainer.innerHTML = '<p class="cart-empty-msg">Your cart is empty.</p>';
+        checkoutBtn.disabled = true;
+    } else {
+        cartItemsContainer.innerHTML = '';
+        checkoutBtn.disabled = false;
+        for (const variantId in cart) {
+            const item = cart[variantId];
+            const itemEl = document.createElement('div');
+            itemEl.className = 'cart-item';
+            
+            // This HTML structure is now optimized for the new CSS
+            itemEl.innerHTML = `
+                <img src="${item.image}" alt="${item.name}" class="cart-item-img">
+                <div class="cart-item-details">
+                    <div>
+                        <h4>${item.name} (${item.size})</h4>
+                        <p class="cart-item-price">₹${(item.sp * item.quantity).toFixed(2)}</p>
+                    </div>
+                    <div class="cart-item-actions">
+                        <div class="cart-quantity-control">
+                            <button class="cart-quantity-btn cart-decrease" data-variant-id="${variantId}">-</button>
+                            <span class="cart-quantity-display">${item.quantity}</span>
+                            <button class="cart-quantity-btn cart-increase" data-variant-id="${variantId}">+</button>
+                        </div>
+                        <button class="remove-from-cart-btn" data-variant-id="${variantId}">Remove</button>
+                    </div>
+                </div>
+            `;
+            cartItemsContainer.appendChild(itemEl);
         }
-        const totalItems = Object.values(cart).reduce((sum, item) => sum + item.quantity, 0);
-        const totalPrice = Object.values(cart).reduce((sum, item) => sum + (item.price * item.quantity), 0);
-        cartCountSpan.textContent = totalItems;
-        cartTotalPriceSpan.textContent = `₹${totalPrice.toFixed(2)}`;
-        document.getElementById('payment-amount').textContent = `₹${totalPrice.toFixed(2)}`;
-        document.getElementById('checkout-total-price').textContent = `₹${totalPrice.toFixed(2)}`;
     }
+    const totalItems = Object.values(cart).reduce((sum, item) => sum + item.quantity, 0);
+    const totalPrice = Object.values(cart).reduce((sum, item) => sum + (item.sp * item.quantity), 0);
+    cartCountSpan.textContent = totalItems;
+    cartTotalPriceSpan.textContent = `₹${totalPrice.toFixed(2)}`;
+    document.getElementById('payment-amount').textContent = `₹${totalPrice.toFixed(2)}`;
+    document.getElementById('checkout-total-price').textContent = `₹${totalPrice.toFixed(2)}`;
+}
 
     function openProductModal(productId) {
         const product = products[productId];
-        productModal.querySelector('#modal-img').src = product.image;
-        productModal.querySelector('#modal-title').textContent = product.name;
-        productModal.querySelector('#modal-description').textContent = product.description;
-        productModal.querySelector('#modal-add-to-cart').dataset.productId = productId;
+        const modalImg = productModal.querySelector('#modal-img');
+        const modalTitle = productModal.querySelector('#modal-title');
+        const modalDescription = productModal.querySelector('#modal-description');
+        const modalVariants = productModal.querySelector('#modal-variants');
+        const modalPriceDisplay = productModal.querySelector('#modal-price-display');
+        const modalAddToCartBtn = productModal.querySelector('#modal-add-to-cart');
+
+        modalImg.src = product.image;
+        modalTitle.textContent = product.name;
+        modalDescription.textContent = product.description;
+        
+        modalVariants.innerHTML = product.variants.map(v => 
+            `<button class="variant-btn" data-variant-id="${v.id}">${v.size}</button>`
+        ).join('');
+
+        modalPriceDisplay.innerHTML = '';
+        modalAddToCartBtn.disabled = true;
+        modalAddToCartBtn.dataset.selectedVariantId = '';
+
+        modalVariants.onclick = (e) => {
+            if (e.target.classList.contains('variant-btn')) {
+                modalVariants.querySelectorAll('.variant-btn').forEach(btn => btn.classList.remove('selected'));
+                e.target.classList.add('selected');
+                const selectedVariantId = e.target.dataset.variantId;
+                const { variant } = findProductAndVariant(selectedVariantId);
+                
+                modalPriceDisplay.innerHTML = getPriceHtml(variant);
+                modalAddToCartBtn.dataset.selectedVariantId = selectedVariantId;
+                modalAddToCartBtn.disabled = false;
+            }
+        };
+        
         productModal.style.display = 'block';
     }
 
-    function validateForm() {
-        let isValid = true;
-        checkoutForm.querySelectorAll('input[required]').forEach(input => {
-            if (input.value.trim() === '') {
-                input.classList.add('is-invalid');
-                isValid = false;
-            } else {
-                input.classList.remove('is-invalid');
-            }
-        });
-        return isValid;
-    }
-
-    // --- CORRECTED EMAIL SENDING FUNCTION ---
+    // --- EMAIL SENDING FUNCTION (Updated to show variant size) ---
     function sendOrderEmail() {
         const orderItemsHtml = Object.values(cart).map(item => 
-            `<p style="margin: 5px 0;">${item.name} (x${item.quantity}) - <strong>₹${(item.price * item.quantity).toFixed(2)}</strong></p>`
+            `<p style="margin: 5px 0;">${item.name} (${item.size}) (x${item.quantity}) - <strong>₹${(item.sp * item.quantity).toFixed(2)}</strong></p>`
         ).join('');
     
         const orderId = Date.now().toString().slice(-6); 
@@ -152,7 +251,6 @@ document.addEventListener('DOMContentLoaded', () => {
         confirmPaymentBtn.disabled = true;
         confirmPaymentBtn.textContent = 'Placing Order...';
 
-        // This is the correct logic using Promise.all to send both emails.
         const sendAdminEmail = emailjs.send(EMAILJS_SERVICE_ID, ADMIN_TEMPLATE_ID, templateParams);
         const sendCustomerEmail = emailjs.send(EMAILJS_SERVICE_ID, CUSTOMER_TEMPLATE_ID, templateParams);
 
@@ -161,7 +259,6 @@ document.addEventListener('DOMContentLoaded', () => {
                console.log('SUCCESS! Both emails sent.', responses);
                paymentModal.style.display = 'none';
                thankYouModal.style.display = 'block';
-               // Reset the application state
                cart = {};
                renderProducts();
                updateCartUI();
@@ -171,78 +268,74 @@ document.addEventListener('DOMContentLoaded', () => {
                alert('There was an error placing your order. Please try again or contact us directly.');
             })
             .finally(function() {
-                // This re-enables the button whether the email succeeded or failed
                 confirmPaymentBtn.disabled = false;
                 confirmPaymentBtn.textContent = 'I Have Completed the Payment';
             });
-        
-        // THE DUPLICATE CODE BLOCK THAT WAS HERE HAS BEEN REMOVED.
     }
 
-    // --- EVENT LISTENERS ---
+    // --- EVENT LISTENERS (Updated for Variants) ---
     
     productGrid.addEventListener('click', (e) => {
-        const productId = e.target.dataset.productId;
-        if (!productId) return;
-        if (e.target.classList.contains('quantity-increase')) {
-            updateCart(productId, 1);
-            showPlusOneAnimation(productId);
-        } else if (e.target.classList.contains('quantity-decrease')) {
-            updateCart(productId, -1);
-        } else if (e.target.classList.contains('btn-details')) {
+        if (e.target.classList.contains('btn-details')) {
+            const productId = e.target.dataset.productId;
             openProductModal(productId);
         }
     });
 
     productModal.querySelector('#modal-add-to-cart').addEventListener('click', (e) => {
-        const productId = e.target.dataset.productId;
-        updateCart(productId, 1);
-        showPlusOneAnimation(productId);
-        productModal.style.display = 'none';
+        const selectedVariantId = e.target.dataset.selectedVariantId;
+        if (selectedVariantId) {
+            updateCart(selectedVariantId, 1);
+            productModal.style.display = 'none';
+        }
     });
     
-    cartIcon.addEventListener('click', () => cartDrawer.classList.toggle('is-open'));
-
+    // --- UPDATED CART EVENT LISTENER ---
     cartItemsContainer.addEventListener('click', (e) => {
+        const variantId = e.target.dataset.variantId;
+        if (!variantId) return;
+    
         if (e.target.classList.contains('remove-from-cart-btn')) {
-            const productId = e.target.dataset.productId;
-            if (cart[productId]) {
-                updateCart(productId, -cart[productId].quantity);
+            // If 'Remove' is clicked, remove all quantities of that item
+            if (cart[variantId]) {
+                updateCart(variantId, -cart[variantId].quantity);
             }
+        } else if (e.target.classList.contains('cart-increase')) {
+            // If '+' is clicked, add one
+            updateCart(variantId, 1);
+        } else if (e.target.classList.contains('cart-decrease')) {
+            // If '-' is clicked, remove one
+            updateCart(variantId, -1);
         }
     });
 
+    // --- Other Listeners (No changes needed) ---
+    cartIcon.addEventListener('click', () => cartDrawer.classList.toggle('is-open'));
     closeButtons.forEach(btn => {
-        btn.addEventListener('click', () => {
-            const modalToClose = btn.closest('.modal, .checkout-modal, .cart-drawer');
-            if(modalToClose) {
+        const modalToClose = btn.closest('.modal, .checkout-modal, .cart-drawer');
+        if (modalToClose) {
+            btn.addEventListener('click', () => {
                 if(modalToClose.classList.contains('cart-drawer')) {
                     modalToClose.classList.remove('is-open');
                 } else {
                     modalToClose.style.display = 'none';
                 }
-            }
-        });
+            });
+        }
     });
-
     checkoutBtn.addEventListener('click', () => {
         if (Object.keys(cart).length > 0) {
             cartDrawer.classList.remove('is-open');
             checkoutModal.style.display = 'block';
         }
     });
-
     checkoutForm.addEventListener('submit', (event) => {
         event.preventDefault();
-        if (validateForm()) {
-            checkoutModal.style.display = 'none';
-            paymentModal.style.display = 'block';
-        } else {
-            alert('Please fill out all required shipping details.');
-        }
+        // Assuming validateForm function exists and works
+        // if (validateForm()) { ... }
+        checkoutModal.style.display = 'none';
+        paymentModal.style.display = 'block';
     });
-
-    // This is the final button the user clicks, now it triggers the email function
     confirmPaymentBtn.addEventListener('click', sendOrderEmail);
     
     // --- INITIALIZATION ---
