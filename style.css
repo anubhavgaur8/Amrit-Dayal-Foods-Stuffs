@@ -211,11 +211,65 @@ h3 { font-size: 1.4rem; color: var(--text-color); }
 .cart-items-container { flex-grow: 1; overflow-y: auto; padding: 20px; }
 .cart-item { display: flex; align-items: center; margin-bottom: 20px; }
 .cart-item-img { width: 70px; height: 70px; object-fit: cover; border-radius: 4px; margin-right: 15px; }
-.cart-item-details { flex-grow: 1; }
-.cart-item-details h4 { margin: 0 0 5px 0; font-family: var(--font-body); font-weight: 500; }
-.cart-item-price { color: var(--primary-accent); font-weight: bold; }
-.remove-from-cart-btn { background: none; border: none; color: #999; font-size: 1rem; cursor: pointer; margin-left: 10px; }
-.remove-from-cart-btn:hover { color: red; }
+/* === NEW & CORRECTED STYLES FOR CART QUANTITY CONTROLS === */
+
+.cart-item-details {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column; /* This is important: stacks elements vertically */
+    justify-content: space-between; /* Pushes actions to the bottom */
+}
+
+.cart-item-price {
+    color: var(--primary-accent);
+    font-weight: bold;
+    font-size: 1.1rem; /* A bit larger */
+    margin-bottom: 10px; /* Adds space above the actions */
+}
+
+.cart-item-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.cart-quantity-control {
+    display: flex;
+    align-items: center;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}
+
+.cart-quantity-btn {
+    background-color: transparent;
+    border: none;
+    color: var(--text-color);
+    width: 30px;
+    height: 30px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.cart-quantity-display {
+    font-size: 1.1rem; /* Larger font size */
+    font-weight: bold;
+    padding: 0 12px; /* More space */
+    color: var(--text-color); /* THIS IS THE CRITICAL FIX */
+}
+
+/* Made the remove button look more like a link */
+.remove-from-cart-btn {
+    background: none;
+    border: none;
+    color: #999;
+    font-size: 0.9rem;
+    cursor: pointer;
+    text-decoration: underline;
+}
+.remove-from-cart-btn:hover {
+    color: red;
+}
 .cart-empty-msg { text-align: center; color: #777; margin-top: 50px; }
 .cart-footer { padding: 20px; border-top: 1px solid #ddd; background-color: #fff; }
 .cart-total { display: flex; justify-content: space-between; font-size: 1.2rem; margin-bottom: 20px; }
@@ -446,4 +500,94 @@ h3 { font-size: 1.4rem; color: var(--text-color); }
         opacity: 0;
         transform: translate(-50%, -150%) scale(0.8); /* Moves up as it fades */
     }
+}
+/* === NEW STYLES FOR VARIANTS AND PRICING === */
+
+/* Pricing style for the product cards */
+.product-price {
+    margin-top: 10px;
+    height: 24px; /* Keep height consistent */
+}
+.price-sp {
+    font-weight: bold;
+    font-size: 1.2rem;
+    color: var(--text-color);
+}
+.price-mrp {
+    margin-left: 8px;
+    color: #888;
+    text-decoration: line-through;
+}
+
+/* Styles for the modal pop-up */
+.modal-price {
+    font-size: 1.5rem;
+    margin-bottom: 20px;
+    min-height: 30px; /* Prevent layout shift */
+}
+
+.variant-options {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 30px;
+}
+
+.variant-btn {
+    background-color: #f0f0f0;
+    border: 2px solid #ddd;
+    padding: 10px 20px;
+    border-radius: 50px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+
+.variant-btn:hover {
+    border-color: var(--secondary-accent);
+}
+
+/* Style for the selected variant */
+.variant-btn.selected {
+    background-color: var(--primary-accent);
+    color: white;
+    border-color: var(--primary-accent);
+}
+
+/* Disable the add-to-cart button when no variant is selected */
+#modal-add-to-cart:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+/* === NEW STYLES FOR CART QUANTITY CONTROLS === */
+
+.cart-item-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 10px;
+}
+
+.cart-quantity-control {
+    display: flex;
+    align-items: center;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}
+
+.cart-quantity-btn {
+    background-color: transparent;
+    border: none;
+    color: var(--text-color);
+    width: 30px;
+    height: 30px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.cart-quantity-display {
+    font-size: 1rem;
+    font-weight: bold;
+    padding: 0 10px;
 }
